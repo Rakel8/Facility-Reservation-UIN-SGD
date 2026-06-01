@@ -1,0 +1,236 @@
+name: 'Approval Management'
+description: 'API endpoints for managing reservation approvals (requires admin_fakultas role)'
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/v1/approvals/pending
+    metadata:
+      custom: []
+      groupName: 'Approval Management'
+      groupDescription: 'API endpoints for managing reservation approvals (requires admin_fakultas role)'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'List Pending Reservations'
+      description: 'Retrieve all pending reservations awaiting approval. Requires admin_fakultas role.'
+      authenticated: true
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: |-
+          {
+            "success": true,
+            "message": "Pending reservations retrieved successfully",
+            "data": [
+              {
+                "id": 1,
+                "user_id": 3,
+                "room_id": 1,
+                "tanggal_mulai": "2026-06-05T10:00:00.000000Z",
+                "tanggal_selesai": "2026-06-05T12:00:00.000000Z",
+                "tujuan": "Seminar Nasional",
+                "file_surat": null,
+                "status_approval": "pending",
+                "alasan_penolakan": null,
+                "created_at": "2026-05-31T00:00:00.000000Z",
+                "updated_at": "2026-05-31T00:00:00.000000Z",
+                "user": {
+                  "id": 3,
+                  "name": "Mahasiswa Peminjam",
+                  "email": "mahasiswa@uin.ac.id",
+                  "role": "peminjam"
+                },
+                "room": {
+                  "id": 1,
+                  "nama_ruangan": "Aula Abdjan Soelaiman",
+                  "kapasitas": 500
+                }
+              }
+            ]
+          }
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PUT
+    uri: 'api/v1/approvals/{reservation_id}/approve'
+    metadata:
+      custom: []
+      groupName: 'Approval Management'
+      groupDescription: 'API endpoints for managing reservation approvals (requires admin_fakultas role)'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Approve Reservation'
+      description: 'Approve a pending reservation. Requires admin_fakultas role.'
+      authenticated: true
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      reservation_id:
+        custom: []
+        name: reservation_id
+        description: 'The ID of the reservation.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      reservation_id: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: |-
+          {
+            "success": true,
+            "message": "Reservation approved successfully",
+            "data": {
+              "id": 1,
+              "user_id": 3,
+              "room_id": 1,
+              "tanggal_mulai": "2026-06-05T10:00:00.000000Z",
+              "tanggal_selesai": "2026-06-05T12:00:00.000000Z",
+              "tujuan": "Seminar Nasional",
+              "file_surat": null,
+              "status_approval": "approved",
+              "alasan_penolakan": null,
+              "created_at": "2026-05-31T00:00:00.000000Z",
+              "updated_at": "2026-05-31T00:00:00.000000Z"
+            }
+          }
+        headers: []
+        description: ''
+      -
+        custom: []
+        status: 404
+        content: |-
+          {
+            "success": false,
+            "message": "Reservation not found or already processed",
+            "data": null
+          }
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PUT
+    uri: 'api/v1/approvals/{reservation_id}/reject'
+    metadata:
+      custom: []
+      groupName: 'Approval Management'
+      groupDescription: 'API endpoints for managing reservation approvals (requires admin_fakultas role)'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Reject Reservation'
+      description: 'Reject a pending reservation with optional reason. Requires admin_fakultas role.'
+      authenticated: true
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      reservation_id:
+        custom: []
+        name: reservation_id
+        description: 'The ID of the reservation.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      reservation_id: 1
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      alasan_penolakan:
+        custom: []
+        name: alasan_penolakan
+        description: 'The reason for rejection.'
+        required: true
+        example: 'Ruangan sudah dipesan lebih dulu'
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+    cleanBodyParameters:
+      alasan_penolakan: 'Ruangan sudah dipesan lebih dulu'
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: |-
+          {
+            "success": true,
+            "message": "Reservation rejected successfully",
+            "data": {
+              "id": 1,
+              "user_id": 3,
+              "room_id": 1,
+              "tanggal_mulai": "2026-06-05T10:00:00.000000Z",
+              "tanggal_selesai": "2026-06-05T12:00:00.000000Z",
+              "tujuan": "Seminar Nasional",
+              "file_surat": null,
+              "status_approval": "rejected",
+              "alasan_penolakan": "Ruangan sudah dipesan lebih dulu",
+              "created_at": "2026-05-31T00:00:00.000000Z",
+              "updated_at": "2026-05-31T00:00:00.000000Z"
+            }
+          }
+        headers: []
+        description: ''
+      -
+        custom: []
+        status: 422
+        content: |-
+          {
+            "success": false,
+            "message": "Reservation is not pending",
+            "data": null
+          }
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null

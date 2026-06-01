@@ -1,0 +1,259 @@
+name: Reservations
+description: 'API endpoints for managing facility reservations'
+endpoints:
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/v1/reservations/available
+    metadata:
+      custom: []
+      groupName: Reservations
+      groupDescription: 'API endpoints for managing facility reservations'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'List Available Rooms'
+      description: 'Retrieve all active rooms that are available for reservation.'
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: |-
+          {
+            "success": true,
+            "message": "Available rooms retrieved successfully",
+            "data": [
+              {
+                "id": 1,
+                "nama_ruangan": "Aula Abdjan Soelaiman",
+                "kapasitas": 500,
+                "fasilitas": "Proyektor, Sound System, AC",
+                "status_aktif": true,
+                "created_at": "2026-05-31T00:00:00.000000Z",
+                "updated_at": "2026-05-31T00:00:00.000000Z"
+              }
+            ]
+          }
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/v1/reservations
+    metadata:
+      custom: []
+      groupName: Reservations
+      groupDescription: 'API endpoints for managing facility reservations'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'Submit Reservation'
+      description: 'Create a new reservation request. Requires peminjam role.'
+      authenticated: true
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      room_id:
+        custom: []
+        name: room_id
+        description: 'The room ID to reserve.'
+        required: true
+        example: 1
+        type: integer
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      tanggal_mulai:
+        custom: []
+        name: tanggal_mulai
+        description: 'Start date and time (ISO 8601).'
+        required: true
+        example: '2026-06-05T10:00:00'
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      tanggal_selesai:
+        custom: []
+        name: tanggal_selesai
+        description: 'End date and time (ISO 8601).'
+        required: true
+        example: '2026-06-05T12:00:00'
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      tujuan:
+        custom: []
+        name: tujuan
+        description: 'Purpose of reservation.'
+        required: true
+        example: 'Seminar Nasional'
+        type: string
+        enumValues: []
+        exampleWasSpecified: true
+        nullable: false
+        deprecated: false
+      file_surat:
+        custom: []
+        name: file_surat
+        description: 'File attachment path (optional).'
+        required: false
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      room_id: 1
+      tanggal_mulai: '2026-06-05T10:00:00'
+      tanggal_selesai: '2026-06-05T12:00:00'
+      tujuan: 'Seminar Nasional'
+      file_surat: architecto
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 201
+        content: |-
+          {
+            "success": true,
+            "message": "Reservation created successfully",
+            "data": {
+              "id": 1,
+              "user_id": 3,
+              "room_id": 1,
+              "tanggal_mulai": "2026-06-05T10:00:00.000000Z",
+              "tanggal_selesai": "2026-06-05T12:00:00.000000Z",
+              "tujuan": "Seminar Nasional",
+              "file_surat": null,
+              "status_approval": "pending",
+              "alasan_penolakan": null,
+              "created_at": "2026-05-31T00:00:00.000000Z",
+              "updated_at": "2026-05-31T00:00:00.000000Z"
+            }
+          }
+        headers: []
+        description: ''
+      -
+        custom: []
+        status: 422
+        content: |-
+          {
+            "success": false,
+            "message": "Validation failed",
+            "data": null
+          }
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: api/v1/reservations/history
+    metadata:
+      custom: []
+      groupName: Reservations
+      groupDescription: 'API endpoints for managing facility reservations'
+      subgroup: ''
+      subgroupDescription: ''
+      title: 'User Reservation History'
+      description: "Retrieve the authenticated user's reservation history."
+      authenticated: true
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters:
+      status:
+        custom: []
+        name: status
+        description: 'Filter by approval status (pending, approved, rejected). Optional.'
+        required: false
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanQueryParameters:
+      status: architecto
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 200
+        content: |-
+          {
+            "success": true,
+            "message": "User reservations retrieved successfully",
+            "data": [
+              {
+                "id": 1,
+                "user_id": 3,
+                "room_id": 1,
+                "tanggal_mulai": "2026-06-05T10:00:00.000000Z",
+                "tanggal_selesai": "2026-06-05T12:00:00.000000Z",
+                "tujuan": "Seminar Nasional",
+                "file_surat": null,
+                "status_approval": "pending",
+                "alasan_penolakan": null,
+                "created_at": "2026-05-31T00:00:00.000000Z",
+                "updated_at": "2026-05-31T00:00:00.000000Z",
+                "user": {
+                  "id": 3,
+                  "name": "Mahasiswa Peminjam",
+                  "email": "mahasiswa@uin.ac.id",
+                  "role": "peminjam"
+                },
+                "room": {
+                  "id": 1,
+                  "nama_ruangan": "Aula Abdjan Soelaiman",
+                  "kapasitas": 500
+                }
+              }
+            ]
+          }
+        headers: []
+        description: ''
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null

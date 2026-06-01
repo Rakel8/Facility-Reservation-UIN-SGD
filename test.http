@@ -1,0 +1,127 @@
+@baseUrl = http://localhost:8000/api/v1
+@token = 38|I2B5hMQpPnQpc9fnTQf8Mn23jyuUCeE4lRAyansW944a0e82
+
+### ============= AUTHENTICATION =============
+
+### 1. Login as Mahasiswa
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "mahasiswa@uin.ac.id",
+  "password": "password123"
+}
+
+### 2. Login as Admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@uin.ac.id",
+  "password": "password123"
+}
+
+### 3. Login as Superadmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "superadmin@uin.ac.id",
+  "password": "password123"
+}
+
+### 4. Get Current User
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### 5. Logout
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{token}}
+
+### ============= ROOMS =============
+
+### 6. Get All Rooms
+GET {{baseUrl}}/rooms
+Authorization: Bearer {{token}}
+
+### 7. Create Room (superadmin only)
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nama_ruangan": "Ruang Meeting Baru",
+  "kapasitas": 30,
+  "fasilitas": "AC, WiFi, Proyektor",
+  "status_aktif": true
+}
+
+### 8. Update Room (superadmin only)
+PUT {{baseUrl}}/rooms/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nama_ruangan": "Aula Abdjan Soelaiman - Updated",
+  "kapasitas": 600,
+  "fasilitas": "Proyektor, Sound System, AC, WiFi"
+}
+
+### 9. Delete Room (superadmin only)
+DELETE {{baseUrl}}/rooms/6
+Authorization: Bearer {{token}}
+
+### ============= RESERVATIONS =============
+
+### 10. Get Available Rooms
+GET {{baseUrl}}/reservations/available
+Authorization: Bearer {{token}}
+
+### 11. Submit Reservation (peminjam only)
+POST {{baseUrl}}/reservations
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+ "room_id":2,
+ "tanggal_mulai":"2026-06-15T14:00:00",
+ "tanggal_selesai":"2026-06-15T16:00:00",
+ "tujuan":"TESTING6"
+}
+
+### 12. Get Reservation History
+GET {{baseUrl}}/reservations/history
+Authorization: Bearer {{token}}
+
+### 13. Get Reservation History with Filter
+GET {{baseUrl}}/reservations/history?status=pending
+Authorization: Bearer {{token}}
+
+### ============= APPROVALS =============
+
+### 14. Get Pending Reservations (admin_fakultas only)
+GET {{baseUrl}}/approvals/pending
+Authorization: Bearer {{token}}
+
+### 15. Approve Reservation with PDF Generation (admin_fakultas only)
+PUT {{baseUrl}}/approvals/13/approve
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nama_penyetuju": "Dr. TESTING6",
+  "jabatan_penyetuju": "Wakil Rektor Bidang Akademik"
+}
+
+### 16. Reject Reservation (admin_fakultas only)
+PUT {{baseUrl}}/approvals/1/reject
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "alasan_penolakan": "Ruangan sudah dipesan untuk keperluan lain"
+}
+
+### 17. Download Permission Letter PDF
+GET {{baseUrl}}/reservations/13/letter/pdf
+Authorization: Bearer {{token}}
