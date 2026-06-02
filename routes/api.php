@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\ApprovalController;
 Route::prefix('v1')->group(function () {
     // Public Routes - Authentication
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::get('/rooms', [RoomController::class, 'index']); // Public read
+    Route::get('/reservations/schedule', [ReservationController::class, 'schedule']); // Get all active reservations schedule (Public view)
 
     // Protected Routes
     Route::middleware('auth:sanctum')->group(function () {
@@ -18,7 +20,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
 
         // Rooms Routes - Only Superadmin can create/update/delete
-        Route::get('/rooms', [RoomController::class, 'index']); // Public read
         Route::post('/rooms', [RoomController::class, 'store'])->middleware('role:superadmin');
         Route::put('/rooms/{room}', [RoomController::class, 'update'])->middleware('role:superadmin');
         Route::delete('/rooms/{room}', [RoomController::class, 'destroy'])->middleware('role:superadmin');

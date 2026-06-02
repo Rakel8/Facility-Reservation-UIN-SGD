@@ -145,17 +145,61 @@ class ReservationController extends Controller
      */
     public function history(Request $request)
     {
-        $query = Reservation::where('user_id', $request->user()->id)->with(['user', 'room']);
+        $user = $request->user();
+
+        // If user is superadmin or admin_fakultas, retrieve all reservations in the system
+        if ($user->role === 'superadmin' || $user->role === 'admin_fakultas') {
+            $query = Reservation::with(['user', 'room']);
+        } else {
+            // Regular peminjam (student) can only see their own reservations
+            $query = Reservation::where('user_id', $user->id)->with(['user', 'room']);
+        }
 
         if ($request->has('status')) {
             $query->where('status_approval', $request->status);
         }
 
-        $reservations = $query->get();
+        // Order by newest reservations first
+        $reservations = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'success' => true,
             'message' => 'User reservations retrieved successfully',
+            'data' => $reservations,
+        ]);
+    }
+
+    /**
+     * List Active Reservations Schedule
+     *
+     * Retrieve all active (approved or pending) reservations for scheduling and availability check.
+     *
+     * @authenticated
+     * @response 200 {
+     *   "success": true,
+     *   "message": "All active reservations retrieved successfully",
+     *   "data": [
+     *     {
+     *       "id": 1,
+     *       "user_id": 3,
+     *       "room_id": 1,
+     *       "tanggal_mulai": "2026-06-05T10:00:00.000000Z",
+     *       "tanggal_selesai": "2026-06-05T12:00:00.000000Z",
+     *       "tujuan": "Seminar Nasional",
+     *       "status_approval": "approved"
+     *     }
+     *   ]
+     * }
+     */
+    public function schedule()
+    {
+        $reservations = Reservation::whereIn('status_approval', ['approved', 'pending'])
+            ->with(['user', 'room'])
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All active reservations retrieved successfully',
             'data' => $reservations,
         ]);
     }
