@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['user_id', 'room_id', 'tanggal_mulai', 'tanggal_selesai', 'tujuan', 'file_surat', 'status_approval', 'alasan_penolakan', 'nomor_surat', 'tanggal_persetujuan', 'nama_penyetuju', 'jabatan_penyetuju', 'file_surat_pdf'])]
+#[Fillable(['user_id', 'room_id', 'tanggal_mulai', 'tanggal_selesai', 'tujuan', 'file_surat', 'status_approval', 'alasan_penolakan', 'nomor_surat', 'tanggal_persetujuan', 'nama_penyetuju', 'jabatan_penyetuju', 'file_surat_pdf', 'instansi', 'deskripsi_acara', 'tipe_peminjam', 'approver_role', 'proposal_file'])]
 class Reservation extends Model
 {
     use HasFactory;

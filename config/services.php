@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'campus' => [
+        'base_url' => env('CAMPUS_API_BASE_URL'),
+    ],
+
 ];

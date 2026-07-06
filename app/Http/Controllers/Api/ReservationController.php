@@ -89,17 +89,67 @@ class ReservationController extends Controller
             'tanggal_mulai' => 'required|date_format:Y-m-d\TH:i:s',
             'tanggal_selesai' => 'required|date_format:Y-m-d\TH:i:s|after:tanggal_mulai',
             'tujuan' => 'required|string|max:255',
-            'file_surat' => 'nullable|string',
+            'instansi' => 'required|string|max:255',
+            'deskripsi_acara' => 'required|string',
+            'tipe_peminjam' => 'required|string|in:internal,eksternal',
+            'proposal_file' => 'nullable|file|mimes:pdf|max:2048', // PDF max 2MB
         ]);
+
+        $room = Room::findOrFail($validated['room_id']);
+
+        // Check if internal-only room is requested by external borrower
+        if (!$room->eksternal_diizinkan && $validated['tipe_peminjam'] === 'eksternal') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Aula ini hanya bisa disewa oleh internal kampus',
+                'data' => null
+            ], 422);
+        }
+
+        // Determine approver role based on borrower type, room level, and check-in day
+        if ($validated['tipe_peminjam'] === 'eksternal') {
+            $approverRole = 'admin_bisnis';
+        } elseif ($room->tingkat === 'fakultas') {
+            $approverRole = 'admin_fakultas';
+        } elseif ($room->tingkat === 'kemahasiswaan') {
+            $approverRole = 'admin_kemahasiswaan';
+        } else { // universitas
+            $startDate = \Carbon\Carbon::parse($validated['tanggal_mulai']);
+            $endDate = \Carbon\Carbon::parse($validated['tanggal_selesai']);
+            
+            // If it covers any weekday, it goes to admin_universitas. If purely weekend, admin_bisnis.
+            $hasWeekday = false;
+            $tempDate = $startDate->copy();
+            while ($tempDate->lte($endDate)) {
+                if ($tempDate->isWeekday()) {
+                    $hasWeekday = true;
+                    break;
+                }
+                $tempDate->addDay();
+            }
+
+            if ($hasWeekday) {
+                $approverRole = 'admin_universitas';
+            } else {
+                $approverRole = 'admin_bisnis';
+            }
+        }
+
+        // Handle proposal file upload
+        if ($request->hasFile('proposal_file')) {
+            $path = $request->file('proposal_file')->store('proposals', 'public');
+            $validated['proposal_file'] = '/storage/' . $path;
+        }
 
         $validated['user_id'] = $request->user()->id;
         $validated['status_approval'] = 'pending';
+        $validated['approver_role'] = $approverRole;
 
         $reservation = Reservation::create($validated);
 
         return response()->json([
             'success' => true,
-            'message' => 'Reservation created successfully',
+            'message' => 'Reservation created successfully. Waiting for ' . str_replace('_', ' ', $approverRole) . ' approval.',
             'data' => $reservation,
         ], 201);
     }
@@ -147,13 +197,8 @@ class ReservationController extends Controller
     {
         $user = $request->user();
 
-        // If user is superadmin or admin_fakultas, retrieve all reservations in the system
-        if ($user->role === 'superadmin' || $user->role === 'admin_fakultas') {
-            $query = Reservation::with(['user', 'room']);
-        } else {
-            // Regular peminjam (student) can only see their own reservations
-            $query = Reservation::where('user_id', $user->id)->with(['user', 'room']);
-        }
+        // Retrieve only the logged-in user's reservations for privacy
+        $query = Reservation::where('user_id', $user->id)->with(['user', 'room']);
 
         if ($request->has('status')) {
             $query->where('status_approval', $request->status);
@@ -228,7 +273,7 @@ class ReservationController extends Controller
     public function downloadLetterPDF(Request $request, Reservation $reservation)
     {
         // Check authorization: user must be the owner or an admin
-        if ($request->user()->id !== $reservation->user_id && $request->user()->role !== 'admin_fakultas' && $request->user()->role !== 'superadmin') {
+        if ($request->user()->id !== $reservation->user_id && !in_array($request->user()->role, ['super_admin', 'superadmin', 'admin_fakultas', 'admin_universitas', 'admin_bisnis'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Not authorized to download this file',
@@ -248,5 +293,43 @@ class ReservationController extends Controller
         // Download the file
         $fileName = basename($reservation->file_surat_pdf);
         return Storage::download($reservation->file_surat_pdf, $fileName . '_' . $reservation->nomor_surat . '.pdf');
+    }
+
+    /**
+     * Download Proposal PDF
+     */
+    public function downloadProposal(Request $request, Reservation $reservation)
+    {
+        $user = $request->user();
+        
+        $isOwner = $user->id === $reservation->user_id;
+        $isAdmin = in_array($user->role, ['super_admin', 'superadmin', 'admin_fakultas', 'admin_universitas', 'admin_bisnis']);
+        
+        if (!$isOwner && !$isAdmin) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Not authorized to download this file',
+                'data' => null,
+            ], 403);
+        }
+
+        if (!$reservation->proposal_file) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Proposal file not found',
+                'data' => null,
+            ], 404);
+        }
+
+        $filename = str_replace('/storage/proposals/', 'proposals/', $reservation->proposal_file);
+        if (!Storage::disk('public')->exists($filename)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File does not exist on disk',
+                'data' => null,
+            ], 404);
+        }
+
+        return Storage::disk('public')->download($filename);
     }
 }

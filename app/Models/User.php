@@ -11,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'email', 'password', 'role', 'fakultas_id', 'no_telepon', 'tipe_user', 'nim_nip'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -37,5 +37,21 @@ class User extends Authenticatable
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
+    }
+
+    /**
+     * Get the faculty this admin belongs to.
+     */
+    public function faculty()
+    {
+        return $this->belongsTo(Faculty::class, 'fakultas_id');
+    }
+
+    /**
+     * Get the rooms assigned to this university admin.
+     */
+    public function rooms()
+    {
+        return $this->belongsToMany(Room::class, 'room_user', 'user_id', 'room_id');
     }
 }

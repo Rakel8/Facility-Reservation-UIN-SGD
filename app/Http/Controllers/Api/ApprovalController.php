@@ -52,11 +52,33 @@ class ApprovalController extends Controller
      *   ]
      * }
      */
-    public function pending()
+    public function pending(Request $request)
     {
-        $reservations = Reservation::where('status_approval', 'pending')
-            ->with(['user', 'room'])
-            ->get();
+        $user = $request->user();
+        $query = Reservation::where('status_approval', 'pending')->with(['user', 'room']);
+
+        if ($user->role === 'admin_fakultas') {
+            $query->whereHas('room', function ($q) use ($user) {
+                $q->where('tingkat', 'fakultas')
+                  ->where('fakultas_id', $user->fakultas_id);
+            });
+        } elseif (in_array($user->role, ['admin_universitas', 'admin_kemahasiswaan'])) {
+            $assignedRoomIds = $user->rooms()->pluck('rooms.id')->toArray();
+            $query->where('approver_role', $user->role)
+                  ->whereIn('room_id', $assignedRoomIds);
+        } elseif ($user->role === 'admin_bisnis') {
+            $query->where('approver_role', 'admin_bisnis');
+        } elseif (in_array($user->role, ['super_admin', 'superadmin'])) {
+            // Super admin can see all pending
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized role to view pending approvals',
+                'data' => null,
+            ], 403);
+        }
+
+        $reservations = $query->get();
 
         return response()->json([
             'success' => true,
@@ -112,6 +134,27 @@ class ApprovalController extends Controller
      */
     public function approve(Request $request, Reservation $reservation)
     {
+        $user = $request->user();
+        
+        // Authorization check
+        $isAuthorized = false;
+        if (in_array($user->role, ['super_admin', 'superadmin'])) {
+            $isAuthorized = true;
+        } elseif (in_array($user->role, ['admin_fakultas', 'admin_universitas', 'admin_kemahasiswaan'])) {
+            $assignedRoomIds = $user->rooms()->pluck('rooms.id')->toArray();
+            $isAuthorized = ($reservation->approver_role === $user->role && in_array($reservation->room_id, $assignedRoomIds));
+        } elseif ($user->role === 'admin_bisnis') {
+            $isAuthorized = ($reservation->approver_role === 'admin_bisnis');
+        }
+
+        if (!$isAuthorized) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to approve this reservation',
+                'data' => null,
+            ], 403);
+        }
+
         if ($reservation->status_approval !== 'pending') {
             return response()->json([
                 'success' => false,
@@ -246,6 +289,27 @@ class ApprovalController extends Controller
      */
     public function reject(Request $request, Reservation $reservation)
     {
+        $user = $request->user();
+        
+        // Authorization check
+        $isAuthorized = false;
+        if (in_array($user->role, ['super_admin', 'superadmin'])) {
+            $isAuthorized = true;
+        } elseif (in_array($user->role, ['admin_fakultas', 'admin_universitas', 'admin_kemahasiswaan'])) {
+            $assignedRoomIds = $user->rooms()->pluck('rooms.id')->toArray();
+            $isAuthorized = ($reservation->approver_role === $user->role && in_array($reservation->room_id, $assignedRoomIds));
+        } elseif ($user->role === 'admin_bisnis') {
+            $isAuthorized = ($reservation->approver_role === 'admin_bisnis');
+        }
+
+        if (!$isAuthorized) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You are not authorized to reject this reservation',
+                'data' => null,
+            ], 403);
+        }
+
         if ($reservation->status_approval !== 'pending') {
             return response()->json([
                 'success' => false,
