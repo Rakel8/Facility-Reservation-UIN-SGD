@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Room Reservation - UIN SGD Bandung</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+    
     <!-- Vite Assets (Tailwind CSS v4) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
